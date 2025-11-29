@@ -21,7 +21,7 @@
 
 // Tehtävä 3: Tilakoneen esittely Add missing states.
 // Exercise 3: Definition of the state machine. Add missing states.
-enum state { WAITING=1};
+enum state { WAITING=1, DATA_READY };
 enum state programState = WAITING;
 
 // Tehtävä 3: Valoisuuden globaali muuttuja
@@ -45,9 +45,14 @@ static void sensor_task(void *arg){
     // Exercise 2: Init the light sensor. Find in the SDK documentation the adequate function.
    
     for(;;){
-        uint32_t lux = veml6030_read_light();
+        //uint32_t lux = veml6030_read_light();
 
-        printf("Light: %lu lux\n", lux);
+        //printf("Light: %lu lux\n", lux);
+        if (programState == WAITING) {
+            uint32_t lux = veml6030_read_light();
+            ambientLight = lux;
+            programState = DATA_READY;
+        }
 
 
         // Tehtävä 2: Muokkaa tästä eteenpäin sovelluskoodilla. Kommentoi seuraava rivi.
@@ -87,7 +92,11 @@ static void print_task(void *arg){
     (void)arg;
     
     while(1){
-        
+         if (programState == DATA_READY) {
+            printf("Light: %lu lux\n", ambientLight);
+            programState = WAITING;
+        }
+
         // Tehtävä 3: Kun tila on oikea, tulosta sensoridata merkkijonossa debug-ikkunaan
         //            Muista tilamuutos
         //            Älä unohda kommentoida seuraavaa koodiriviä.
@@ -120,10 +129,10 @@ static void print_task(void *arg){
 
         // Exercise 3. Just for sanity check. Please, comment this out
         // Tehtävä 3: Just for sanity check. Please, comment this out
-        printf("printTask\n");
+        //printf("printTask\n");
         
         // Do not remove this
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(500));
     }
 }
 
